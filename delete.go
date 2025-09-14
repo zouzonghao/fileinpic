@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 type ChunkInfo struct {
@@ -16,17 +15,7 @@ type ChunkInfo struct {
 
 func deleteHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "DELETE" {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		pathParts := strings.Split(r.URL.Path, "/")
-		if len(pathParts) < 3 {
-			http.Error(w, "Invalid URL path", http.StatusBadRequest)
-			return
-		}
-		fileIDStr := pathParts[2]
+		fileIDStr := r.PathValue("id")
 		fileID, err := strconv.ParseInt(fileIDStr, 10, 64)
 		if err != nil {
 			http.Error(w, "Invalid file ID", http.StatusBadRequest)
@@ -57,7 +46,10 @@ func deleteHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		if len(chunks) == 0 {
-			http.Error(w, "File not found or no chunks associated", http.StatusNotFound)
+			// To provide a consistent response, we can treat "not found" as a success.
+			// The file the user wants to delete is already gone.
+			w.Header().Set("Content-Type", "application/json")
+			json.NewEncoder(w).Encode(map[string]interface{}{"ok": true, "message": "File not found or already deleted."})
 			return
 		}
 

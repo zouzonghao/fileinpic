@@ -22,11 +22,6 @@ type AppConfig struct {
 
 func filesHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "GET" {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
 		rows, err := db.Query("SELECT id, filename, filesize, upload_timestamp FROM files ORDER BY upload_timestamp DESC")
 		if err != nil {
 			http.Error(w, "Failed to query files", http.StatusInternalServerError)

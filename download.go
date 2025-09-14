@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 const downloadCarrierPadding = 20 * 1024 // 20KB
@@ -18,18 +17,7 @@ func downloadHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Received download request for: %s", r.URL.Path)
 
-		if r.Method != "GET" {
-			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		pathParts := strings.Split(r.URL.Path, "/")
-		if len(pathParts) < 3 {
-			log.Printf("Error: Invalid URL path parts: %v", pathParts)
-			http.Error(w, "Invalid URL path", http.StatusBadRequest)
-			return
-		}
-		fileIDStr := pathParts[2]
+		fileIDStr := r.PathValue("id")
 		fileID, err := strconv.ParseInt(fileIDStr, 10, 64)
 		if err != nil {
 			log.Printf("Error: Invalid file ID: %s", fileIDStr)
@@ -41,8 +29,12 @@ func downloadHandler(db *sql.DB) http.HandlerFunc {
 		var filename string
 		err = db.QueryRow("SELECT filename FROM files WHERE id = ?", fileID).Scan(&filename)
 		if err != nil {
-			log.Printf("Error: File not found in DB for ID %d: %v", fileID, err)
-			http.Error(w, "File not found", http.StatusNotFound)
+			if err == sql.ErrNoRows {
+				http.Error(w, "File not found", http.StatusNotFound)
+			} else {
+				log.Printf("Error: File not found in DB for ID %d: %v", fileID, err)
+				http.Error(w, "Failed to query file", http.StatusInternalServerError)
+			}
 			return
 		}
 		log.Printf("Found filename: %s", filename)

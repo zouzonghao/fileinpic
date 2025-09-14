@@ -4,44 +4,49 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FileInPic Uploader</title>
-    <style>
-        body { font-family: sans-serif; margin: 2em; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .actions button { margin-right: 5px; }
-        .upload-area { margin-bottom: 2em; padding: 1em; border: 2px dashed #ccc; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <h1>FileInPic - File Storage</h1>
+    <div class="container">
+        <h1>FileInPic - File Storage</h1>
 
-    <div class="upload-area">
-        <h2>Upload New File</h2>
-        <p>Auth-Token is used to delete your files later. Please save it.</p>
-        <input type="text" id="authToken" placeholder="Enter Your Auth-Token" required>
-        <br><br>
-        <input type="file" id="fileInput" required>
-        <br><br>
-        <button id="uploadButton">Upload</button>
-        <p id="uploadStatus"></p>
+        <div class="card">
+            <div class="card-header">
+                <h2>Upload New File</h2>
+            </div>
+            <div class="form-group">
+                <label for="authToken">Auth-Token</label>
+                <input type="text" id="authToken" placeholder="Your Auth-Token will be loaded here" required>
+                <p style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">This token is required to manage your files.</p>
+            </div>
+            <div class="form-group">
+                <label for="fileInput">Select File</label>
+                <input type="file" id="fileInput" required>
+            </div>
+            <button id="uploadButton">Upload</button>
+            <p id="uploadStatus"></p>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2>Uploaded Files</h2>
+            </div>
+            <table id="fileList">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Size</th>
+                        <th>Upload Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- File list will be populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
     </div>
-
-    <h2>Uploaded Files</h2>
-    <table id="fileList">
-        <thead>
-            <tr>
-                <th>Filename</th>
-                <th>Size</th>
-                <th>Upload Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- File list will be populated by JavaScript -->
-        </tbody>
-    </table>
 
     <script src="app.js"></script>
 </body>

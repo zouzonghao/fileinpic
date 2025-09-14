@@ -10,19 +10,21 @@ func main() {
 	defer db.Close()
 	log.Println("Database initialized successfully.")
 
+	mux := http.NewServeMux()
+
 	// API routes
-	http.HandleFunc("/api/upload", uploadHandler(db))
-	http.HandleFunc("/api/download/", downloadHandler(db))
-	http.HandleFunc("/api/delete/", deleteHandler(db))
-	http.HandleFunc("/api/files", filesHandler(db))
-	http.HandleFunc("/api/config", configHandler())
+	mux.HandleFunc("POST /api/upload", uploadHandler(db))
+	mux.HandleFunc("GET /api/download/{id}", downloadHandler(db))
+	mux.HandleFunc("DELETE /api/delete/{id}", deleteHandler(db))
+	mux.HandleFunc("GET /api/files", filesHandler(db))
+	mux.HandleFunc("GET /api/config", configHandler())
 
 	// Static file server for the frontend
 	fs := http.FileServer(http.Dir("./static"))
-	http.Handle("/", fs)
+	mux.Handle("/", fs)
 
 	log.Println("Starting server on :37374")
-	if err := http.ListenAndServe(":37374", nil); err != nil {
+	if err := http.ListenAndServe(":37374", mux); err != nil {
 		log.Fatal(err)
 	}
 }
