@@ -1,21 +1,61 @@
 package main
 
 import (
+	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+
+	"gopkg.in/yaml.v3"
 )
 
-func main() {
-	password := os.Getenv("PASSWORD")
-	if password == "" {
-		password = "admin"
+type Config struct {
+	Host      string `yaml:"host"`
+	Password  string `yaml:"password"`
+	AuthToken string `yaml:"auth_token"`
+}
+
+func loadConfig(path string) (*Config, error) {
+	config := &Config{}
+
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	d := yaml.NewDecoder(file)
+
+	if err := d.Decode(&config); err != nil {
+		return nil, err
 	}
 
-	config := AppConfig{
-		Host:      os.Getenv("HOST"),
-		Password:  password,
-		AuthToken: os.Getenv("AUTH_TOKEN"),
+	return config, nil
+}
+
+func main() {
+	configPath := flag.String("config", "", "path to config file")
+	flag.Parse()
+
+	var config AppConfig
+
+	if *configPath != "" {
+		cfg, err := loadConfig(*configPath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		config.Host = cfg.Host
+		config.Password = cfg.Password
+		config.AuthToken = cfg.AuthToken
+	} else {
+		config.Host = os.Getenv("HOST")
+		config.Password = os.Getenv("PASSWORD")
+		config.AuthToken = os.Getenv("AUTH_TOKEN")
+	}
+
+	if config.Password == "" {
+		config.Password = "admin"
 	}
 
 	db := initDB("./fileinpic.db")
@@ -49,7 +89,7 @@ func main() {
 	// Protected routes
 	mux.Handle("/", authMiddleware(fs))
 
-	log.Println("Starting server on :37374")
+	fmt.Println("Starting server on :37374")
 	if err := http.ListenAndServe(":37374", mux); err != nil {
 		log.Fatal(err)
 	}

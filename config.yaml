@@ -1,0 +1,6 @@
+# The host of the server, e.g. "http://localhost:37374"
+host: ""
+# The password to login
+password: "admin"
+# The auth token to use for API requests
+auth_token: ""

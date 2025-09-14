@@ -1,10 +1,10 @@
 :root {
     --bg-color: #FDFBF5; /* Light Beige Background */
     --card-bg-color: #ffffff;
-    --primary-color: #88C4D2; /* Soft Blue */
-    --primary-hover-color: #70a9b4;
-    --secondary-color: #F8B4C4; /* Soft Pink */
-    --danger-color: #e57373;
+    --primary-color: #7fc5be; /* Soft Blue */
+    --primary-hover-color: #6ca2ad;
+    --secondary-color: #dc9fad; /* Soft Pink */
+    --danger-color: #d75e5e;
     --danger-hover-color: #d32f2f;
     --text-color: #333;
     --text-color-light: #6c757d;
