@@ -25,14 +25,14 @@ func main() {
 	mux := http.NewServeMux()
 
 	// API routes
-	mux.HandleFunc("POST /api/upload", uploadHandler(db))
-	mux.HandleFunc("GET /api/download/{id}", downloadHandler(db))
-	mux.HandleFunc("DELETE /api/delete/{id}", deleteHandler(db))
-	mux.HandleFunc("GET /api/files", filesHandler(db))
-	mux.HandleFunc("POST /api/share", shareHandler(db, &config))
+	mux.Handle("POST /api/upload", authMiddleware(uploadHandler(db)))
+	mux.Handle("GET /api/download/{id}", authMiddleware(downloadHandler(db)))
+	mux.Handle("DELETE /api/delete/{id}", authMiddleware(deleteHandler(db)))
+	mux.Handle("GET /api/files", authMiddleware(filesHandler(db)))
+	mux.Handle("POST /api/share", authMiddleware(shareHandler(db, &config)))
 	mux.HandleFunc("GET /api/share/info", shareInfoHandler(db))
 	mux.HandleFunc("GET /api/share/download", shareDownloadHandler(db))
-	mux.HandleFunc("GET /api/file/share-details", fileShareDetailsHandler(db))
+	mux.Handle("GET /api/file/share-details", authMiddleware(fileShareDetailsHandler(db)))
 	mux.HandleFunc("GET /api/config", configHandler(config))
 	mux.HandleFunc("POST /api/login", loginHandler(config))
 
