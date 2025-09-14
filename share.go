@@ -54,11 +54,15 @@ func shareHandler(db *sql.DB, config *AppConfig) http.HandlerFunc {
 		if config.Host != "" {
 			shareLink = config.Host + "/share.html?file=" + token
 		} else {
+			// Fallback to relative path if host is not set
 			shareLink = "/share.html?file=" + token
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]string{"share_link": shareLink})
+		json.NewEncoder(w).Encode(map[string]string{
+			"share_link":  shareLink,
+			"share_token": token,
+		})
 	}
 }
 

@@ -131,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${fileSize}</td>
                     <td>${uploadDate}</td>
                     <td class="actions">
-                        <button onclick="downloadFile(${file.id})">下载</button>
+                        <button class="download-btn" onclick="downloadFile(${file.id})">下载</button>
                         <button class="share-btn" onclick="shareFile(${file.id}, '${file.filename}')">分享</button>
                         <button class="delete-btn" onclick="deleteFile(${file.id}, '${file.filename}')">删除</button>
                     </td>
@@ -232,17 +232,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeShareModalBtn = document.getElementById('closeShareModalBtn');
     const shareFilenameSpan = document.getElementById('shareFilename');
     const sharePasswordInput = document.getElementById('sharePassword');
+    const generateShareLinkBtn = document.getElementById('generateShareLinkBtn');
+    const shareResultDiv = document.getElementById('shareResult');
     const shareLinkInput = document.getElementById('shareLink');
     const copyShareLinkBtn = document.getElementById('copyShareLinkBtn');
-    const generateShareLinkBtn = document.getElementById('generateShareLinkBtn');
-    let fileToShare = { id: null, filename: null };
+    const directDownloadLinkInput = document.getElementById('directDownloadLink');
+    const copyDirectDownloadLinkBtn = document.getElementById('copyDirectDownloadLinkBtn');
+    let fileToShare = { id: null, filename: null, share_token: null };
 
     // --- Share Modal ---
     async function showShareModal(fileId, filename) {
-        fileToShare = { id: fileId, filename: filename };
+        fileToShare = { id: fileId, filename: filename, share_token: null };
         shareFilenameSpan.textContent = filename;
         sharePasswordInput.value = '';
+        shareResultDiv.classList.add('hidden');
         shareLinkInput.value = '';
+        directDownloadLinkInput.value = '';
         showModal(shareModal);
 
         try {
@@ -250,17 +255,29 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok) {
                 const details = await response.json();
                 if (details.share_token) {
-                    const host = window.appConfig && window.appConfig.host ? window.appConfig.host : window.location.origin;
-                    const shareLink = `${host}/share.html?file=${details.share_token}`;
-                    shareLinkInput.value = shareLink;
+                    fileToShare.share_token = details.share_token;
                     sharePasswordInput.value = details.share_password;
+                    updateShareLinks(details.share_token, details.share_password);
                     showToast('已加载已有的分享链接');
                 }
             }
         } catch (error) {
             console.error('获取分享详情时出错:', error);
-            // Do not show an error toast, as it might be confusing if there's no link yet.
         }
+    }
+
+    function updateShareLinks(shareToken, password) {
+        const host = window.appConfig && window.appConfig.host ? window.appConfig.host : window.location.origin;
+        const shareLink = `${host}/share.html?file=${shareToken}`;
+        shareLinkInput.value = shareLink;
+
+        let directLink = `${host}/api/share/download?file=${shareToken}`;
+        if (password) {
+            directLink += `&password=${encodeURIComponent(password)}`;
+        }
+        directDownloadLinkInput.value = directLink;
+
+        shareResultDiv.classList.remove('hidden');
     }
 
     closeShareModalBtn.addEventListener('click', () => hideModal(shareModal));
@@ -279,8 +296,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             if (!response.ok) throw new Error(result.message || '生成链接失败');
 
-            shareLinkInput.value = result.share_link;
-            showToast('分享链接已生成！');
+            fileToShare.share_token = result.share_token;
+            updateShareLinks(result.share_token, password);
+            showToast('分享链接已生成/更新！');
         } catch (error) {
             showToast(`生成链接失败: ${error.message}`, 'error');
         }
@@ -289,7 +307,15 @@ document.addEventListener('DOMContentLoaded', () => {
     copyShareLinkBtn.addEventListener('click', () => {
         if (shareLinkInput.value) {
             navigator.clipboard.writeText(shareLinkInput.value)
-                .then(() => showToast('链接已复制到剪贴板！'))
+                .then(() => showToast('分享页面链接已复制！'))
+                .catch(() => showToast('复制失败', 'error'));
+        }
+    });
+
+    copyDirectDownloadLinkBtn.addEventListener('click', () => {
+        if (directDownloadLinkInput.value) {
+            navigator.clipboard.writeText(directDownloadLinkInput.value)
+                .then(() => showToast('直接下载链接已复制！'))
                 .catch(() => showToast('复制失败', 'error'));
         }
     });

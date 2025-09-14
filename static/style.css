@@ -5,7 +5,7 @@
     --primary-hover-color: #6ca2ad;
     --secondary-color: #dc9fad; /* Soft Pink */
     --danger-color: #d75e5e;
-    --danger-hover-color: #d32f2f;
+    --danger-hover-color: #c22323;
     --text-color: #333;
     --text-color-light: #6c757d;
     --border-color: #eee;
@@ -328,7 +328,7 @@ input[type="file"]:focus {
     display: flex;
     justify-content: flex-end;
     gap: 1rem;
-    margin-top: 2rem;
+    margin-bottom: 1rem;
 }
 
 .btn-secondary {
@@ -437,4 +437,52 @@ input[type="file"]:focus {
     to {
         transform: rotate(360deg);
     }
+}
+/* Share Modal Layout Adjustments */
+.form-group.inline {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.form-group.inline label {
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
+.input-with-button {
+    display: flex;
+    width: 100%;
+}
+
+.input-with-button input {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    flex-grow: 1;
+}
+
+.input-with-button button {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+.input-with-button button:hover {
+    background-color: #e0a0b0;
+}
+.actions button.download-btn {
+    background-color: #28a746c9; /* Green */
+}
+
+.actions button.download-btn:hover {
+    background-color: #218838;
+}
+
+.actions button.share-btn {
+    background-color: #007bffb8; /* Blue */
+}
+
+.actions button.share-btn:hover {
+    background-color: #0069d9;
 }
