@@ -1,0 +1,50 @@
+# 工作流名称
+name: Build and Release
+
+# 触发工作流的事件
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+' # 仅在 vX.Y.Z 格式的标签上触发
+  workflow_dispatch: # 允许手动触发
+
+# 工作流执行的任务
+jobs:
+  build-and-release:
+    # 任务运行的环境
+    # ubuntu-latest 默认已包含 gcc，所以 cgo 可以正常工作，解决了 sqlite 的编译问题
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write # 必须有写权限才能创建 Release
+
+    # 任务执行的步骤
+    steps:
+      # 步骤 1: 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 步骤 2: 设置 Go 环境
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      # 步骤 3: 下载 Go 依赖项
+      - name: Download Go modules
+        run: go mod download
+
+      # 步骤 4: 构建 Go 应用程序 (for Linux amd64)
+      # 在 ubuntu-latest 环境中构建，cgo 会被自动启用
+      - name: Build Go application for Linux (amd64)
+        run: GOOS=linux GOARCH=amd64 go build -o fileinpic .
+
+      # 步骤 5: 打包构建产物和静态文件
+      - name: Package artifact for release
+        run: tar -czf fileinpic-linux-amd64.tar.gz fileinpic static
+
+      # 步骤 6: 创建 Release 并上传构建产物
+      - name: Create Release and Upload Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fileinpic-linux-amd64.tar.gz
