@@ -13,33 +13,33 @@ func initDB(filepath string) *sql.DB {
 		log.Fatal(err)
 	}
 
-	createFilesTableSQL := `CREATE TABLE IF NOT EXISTS files (
-		"id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,		
-		"filename" TEXT,
-		"filesize" INTEGER,
-		"upload_timestamp" DATETIME DEFAULT CURRENT_TIMESTAMP
+	// Create files table
+	filesTable := `
+	CREATE TABLE IF NOT EXISTS files (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		filename TEXT NOT NULL,
+		filesize INTEGER NOT NULL,
+		upload_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 	);`
-
-	statement, err := db.Prepare(createFilesTableSQL)
+	_, err = db.Exec(filesTable)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to create files table: %v", err)
 	}
-	statement.Exec()
 
-	createChunksTableSQL := `CREATE TABLE IF NOT EXISTS chunks (
-		"id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-		"file_id" INTEGER,
-		"chunk_order" INTEGER,
-		"image_path" TEXT,
-		"auth_token" TEXT,
+	// Create chunks table
+	chunksTable := `
+	CREATE TABLE IF NOT EXISTS chunks (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		file_id INTEGER NOT NULL,
+		chunk_order INTEGER NOT NULL,
+		image_path TEXT NOT NULL,
+		auth_token TEXT NOT NULL,
 		FOREIGN KEY(file_id) REFERENCES files(id)
 	);`
-
-	statement, err = db.Prepare(createChunksTableSQL)
+	_, err = db.Exec(chunksTable)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to create chunks table: %v", err)
 	}
-	statement.Exec()
 
 	return db
 }

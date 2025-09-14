@@ -15,11 +15,6 @@ const (
 	chunkSize     = 6 * 1024 * 1024 // 6 MB
 )
 
-type UploadResponse struct {
-	Ok  bool   `json:"ok"`
-	Src string `json:"src"`
-}
-
 func uploadHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		authToken := r.Header.Get("Auth-Token")

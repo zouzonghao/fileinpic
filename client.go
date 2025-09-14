@@ -48,7 +48,8 @@ func uploadCombinedData(data []byte, authToken string) (string, error) {
 
 func deleteImage(imagePath string, authToken string) error {
 	deleteURL := "https://i.111666.best" + imagePath
-	req, err := http.NewRequest("DELETE", deleteURL, nil)
+	// Using GET method as per the latest finding
+	req, err := http.NewRequest("GET", deleteURL, nil)
 	if err != nil {
 		return err
 	}

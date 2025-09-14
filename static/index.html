@@ -1,53 +1,81 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FileInPic Uploader</title>
+    <title>FileInPic - 文件存储</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container">
-        <h1>FileInPic - File Storage</h1>
-
         <div class="card">
             <div class="card-header">
-                <h2>Upload New File</h2>
-            </div>
-            <div class="form-group">
-                <label for="authToken">Auth-Token</label>
-                <input type="text" id="authToken" placeholder="Your Auth-Token will be loaded here" required>
-                <p style="font-size: 0.8rem; color: #666; margin-top: 0.5rem;">This token is required to manage your files.</p>
-            </div>
-            <div class="form-group">
-                <label for="fileInput">Select File</label>
-                <input type="file" id="fileInput" required>
-            </div>
-            <button id="uploadButton">Upload</button>
-            <p id="uploadStatus"></p>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h2>Uploaded Files</h2>
+                <h2>FileInPic - 文件存储</h2>
+                <div class="toolbar">
+                    <div class="search-container">
+                        <input type="text" id="searchInput" placeholder="搜索文件名...">
+                    </div>
+                    <button id="showUploadModalBtn">上传文件</button>
+                </div>
             </div>
             <table id="fileList">
                 <thead>
                     <tr>
-                        <th>Filename</th>
-                        <th>Size</th>
-                        <th>Upload Date</th>
-                        <th>Actions</th>
+                        <th>文件名</th>
+                        <th>大小</th>
+                        <th>上传日期</th>
+                        <th>操作</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- File list will be populated by JavaScript -->
+                    <!-- 文件列表将由 JavaScript 填充 -->
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Upload Modal -->
+    <div id="uploadModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>上传新文件</h2>
+                <button id="closeUploadModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div class="form-group">
+                <label for="authToken">授权令牌 (Auth-Token)</label>
+                <input type="text" id="authToken" placeholder="将自动加载令牌" required>
+                <p class="help-text">此令牌用于管理您上传的文件。</p>
+            </div>
+            <div class="form-group">
+                <label for="fileInput">选择文件</label>
+                <input type="file" id="fileInput" required>
+            </div>
+            <button id="uploadButton">确认上传</button>
+            <p id="uploadStatus"></p>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>确认删除</h2>
+            </div>
+            <p>您确定要删除文件 <strong id="deleteFilename"></strong> 吗？此操作无法撤销。</p>
+            <div class="form-group">
+                <label for="deleteAuthToken">授权令牌 (Auth-Token)</label>
+                <input type="text" id="deleteAuthToken" placeholder="请输入授权令牌" required>
+            </div>
+            <div class="modal-actions">
+                <button id="cancelDeleteBtn" class="btn-secondary">取消</button>
+                <button id="confirmDeleteBtn" class="btn-danger">确认删除</button>
+            </div>
         </div>
     </div>
 
     <script src="app.js"></script>
 </body>
 </html>
+    <!-- Toast Notification -->
+    <div id="toastContainer" class="toast-container"></div>
