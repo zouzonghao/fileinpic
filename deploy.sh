@@ -127,7 +127,7 @@ After=network.target
 Type=simple
 User=root
 WorkingDirectory=$INSTALL_DIR
-ExecStart=$INSTALL_DIR/$APP_NAME
+ExecStart=$INSTALL_DIR/$APP_NAME -config $INSTALL_DIR/config.yaml
 Restart=on-failure
 RestartSec=5s
 
@@ -140,6 +140,13 @@ EOF
     systemctl daemon-reload
     systemctl enable "$APP_NAME.service"
     systemctl start "$APP_NAME.service"
+
+    # 延迟一小段时间，然后检查服务状态
+    sleep 2
+    if ! systemctl is-active --quiet "$APP_NAME.service"; then
+        echo "错误：服务启动失败。请检查日志 (journalctl -u $APP_NAME.service)" >&2
+        exit 1
+    fi
 
     echo "----------------------------------------"
     echo "$APP_NAME 安装成功！"
