@@ -135,7 +135,10 @@ func shareDownloadHandler(db *sql.DB) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/octet-stream")
 
 		chunkCount := 0
-		buffer := make([]byte, 32*1024)
+		// Get a buffer from the pool
+		bufferPtr := bufferPool.Get().(*[]byte)
+		defer bufferPool.Put(bufferPtr) // Return the buffer to the pool when done
+		buffer := *bufferPtr
 
 		for rows.Next() {
 			chunkCount++

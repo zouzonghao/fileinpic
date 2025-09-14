@@ -7,9 +7,18 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"sync"
 )
 
 const downloadCarrierPadding = 20 * 1024 // 20KB
+
+// bufferPool is a pool of 32KB byte slices to reduce memory allocations during downloads.
+var bufferPool = sync.Pool{
+	New: func() interface{} {
+		b := make([]byte, 32*1024)
+		return &b
+	},
+}
 
 func downloadHandler(db *sql.DB) http.HandlerFunc {
 	client := &http.Client{}
@@ -51,7 +60,10 @@ func downloadHandler(db *sql.DB) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/octet-stream")
 
 		chunkCount := 0
-		buffer := make([]byte, 32*1024)
+		// Get a buffer from the pool
+		bufferPtr := bufferPool.Get().(*[]byte)
+		defer bufferPool.Put(bufferPtr) // Return the buffer to the pool when done
+		buffer := *bufferPtr
 
 		for rows.Next() {
 			chunkCount++

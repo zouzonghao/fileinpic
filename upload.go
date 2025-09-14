@@ -23,7 +23,12 @@ func uploadHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		r.ParseMultipartForm(maxUploadSize)
+		// It's important to still parse the form to get access to the file handle
+		if err := r.ParseMultipartForm(maxUploadSize); err != nil {
+			http.Error(w, "Could not parse multipart form", http.StatusBadRequest)
+			return
+		}
+
 		file, handler, err := r.FormFile("image")
 		if err != nil {
 			http.Error(w, "Invalid file", http.StatusBadRequest)
@@ -31,14 +36,8 @@ func uploadHandler(db *sql.DB) http.HandlerFunc {
 		}
 		defer file.Close()
 
-		fileBytes, err := io.ReadAll(file)
-		if err != nil {
-			http.Error(w, "Failed to read file", http.StatusInternalServerError)
-			return
-		}
-
 		filename := handler.Filename
-		filesize := len(fileBytes)
+		filesize := handler.Size // Use the size from the handler, no need to read the file
 		log.Printf("Received file: %s, size: %d bytes", filename, filesize)
 
 		// 1. Save file metadata to DB
@@ -53,17 +52,22 @@ func uploadHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// 2. Split file into chunks
+		// 2. Process file in chunks
 		numChunks := int(math.Ceil(float64(filesize) / float64(chunkSize)))
 		log.Printf("Splitting into %d chunks", numChunks)
+		chunkBuffer := make([]byte, chunkSize)
 
 		for i := 0; i < numChunks; i++ {
-			start := i * chunkSize
-			end := start + chunkSize
-			if end > filesize {
-				end = filesize
+			// Read a chunk from the file stream
+			bytesRead, err := io.ReadFull(file, chunkBuffer)
+			if err != nil && err != io.EOF && err != io.ErrUnexpectedEOF {
+				http.Error(w, "Failed to read file chunk", http.StatusInternalServerError)
+				log.Printf("Chunk read error: %v", err)
+				return
 			}
-			chunkData := fileBytes[start:end]
+
+			// This is the actual chunk data for this iteration
+			chunkData := chunkBuffer[:bytesRead]
 
 			// 3. Create carrier PNG
 			carrierText := fmt.Sprintf("%s - %d/%d", filename, i+1, numChunks)
