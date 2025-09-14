@@ -30,20 +30,37 @@ jobs:
         with:
           go-version: '1.23'
 
-      # 步骤 3: 下载 Go 依赖项
+      # 步骤 3: 设置 Node.js 环境
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # 使用一个最新的 LTS 版本
+
+      # 步骤 4: 安装 JS/CSS 压缩工具
+      - name: Install JS/CSS Minifiers
+        run: npm install -g terser csso-cli
+
+      # 步骤 5: 压缩 CSS 和 JS 文件
+      - name: Minify CSS and JS files
+        run: |
+          echo "Minifying Javascript files..."
+          find static -type f -name "*.js" -exec terser {} -o {} --compress --mangle \;
+          echo "Minifying CSS files..."
+          find static -type f -name "*.css" -exec csso {} -o {} \;
+
+      # 步骤 6: 下载 Go 依赖项
       - name: Download Go modules
         run: go mod download
 
-      # 步骤 4: 构建 Go 应用程序 (for Linux amd64)
-      # 在 ubuntu-latest 环境中构建，cgo 会被自动启用
+      # 步骤 7: 构建 Go 应用程序 (for Linux amd64)
       - name: Build Go application for Linux (amd64)
         run: GOOS=linux GOARCH=amd64 go build -o fileinpic .
 
-      # 步骤 5: 打包构建产物和静态文件
+      # 步骤 8: 打包构建产物和静态文件
       - name: Package artifact for release
         run: tar -czf fileinpic-linux-amd64.tar.gz fileinpic static
 
-      # 步骤 6: 创建 Release 并上传构建产物
+      # 步骤 9: 创建 Release 并上传构建产物
       - name: Create Release and Upload Asset
         uses: softprops/action-gh-release@v2
         with:
