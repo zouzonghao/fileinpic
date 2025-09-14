@@ -3,7 +3,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileListBody = document.querySelector('#fileList tbody');
     const searchInput = document.getElementById('searchInput');
     const toastContainer = document.getElementById('toastContainer');
-    
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
     // Upload Modal Elements
     const uploadModal = document.getElementById('uploadModal');
     const showUploadModalBtn = document.getElementById('showUploadModalBtn');
@@ -45,6 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function hideModal(modal) {
         modal.classList.add('hidden');
         document.body.classList.remove('modal-open');
+    }
+
+    // --- Loading Overlay ---
+    function showLoading() {
+        loadingOverlay.classList.remove('hidden');
+    }
+
+    function hideLoading() {
+        loadingOverlay.classList.add('hidden');
     }
 
     // --- Upload Modal ---
@@ -139,12 +149,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const authToken = authTokenInput.value.trim();
 
         if (!file || !authToken) {
-            uploadStatus.textContent = '请选择一个文件并提供授权令牌。';
+            showToast('请选择一个文件并提供授权令牌。', 'error');
             return;
         }
 
-        uploadStatus.textContent = '上传中...';
+        showLoading();
         uploadButton.disabled = true;
+        uploadStatus.textContent = ''; // Clear previous status
 
         const formData = new FormData();
         formData.append('image', file);
@@ -159,20 +170,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const result = await response.json();
             if (!response.ok || !result.ok) throw new Error(result.message || '上传失败');
 
-            uploadStatus.textContent = '上传成功！';
             fileInput.value = '';
-            setTimeout(() => {
-                hideModal(uploadModal);
-                uploadStatus.textContent = '';
-                fetchFiles();
-                showToast('文件上传成功！');
-            }, 1000);
+            fileNameSpan.textContent = '未选择任何文件';
+            hideModal(uploadModal);
+            fetchFiles();
+            showToast('文件上传成功！');
 
         } catch (error) {
             console.error('上传错误:', error);
-            uploadStatus.textContent = `上传失败: ${error.message}`;
             showToast(`上传失败: ${error.message}`, 'error');
         } finally {
+            hideLoading();
             uploadButton.disabled = false;
         }
     }
