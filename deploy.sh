@@ -11,14 +11,14 @@ TMP_DIR=$(mktemp -d -t fileinpic-install-XXXXXXXX) # 创建一个安全的临时
 # 1. 如果任何命令失败，立即退出
 set -e
 
-# 2. 设置一个标志，用于判断脚本是否成功完成
-_SUCCESS=false
+# 2. 设置一个标志，用于判断安装过程是否完成
+_INSTALL_COMPLETE=false
 
 # 3. 定义清理函数，在脚本退出时自动调用
 cleanup() {
-  # 如果脚本不是成功退出的，执行回滚操作
-  if [ "$_SUCCESS" = "false" ]; then
-    echo "错误：脚本未能成功完成。正在回滚并清理..." >&2
+  # 仅当安装过程未完成时，才执行回滚
+  if [ "$_INSTALL_COMPLETE" = "false" ]; then
+    echo "错误：安装过程未能完成。正在回滚并清理..." >&2
     
     # 尝试停止并禁用服务
     if systemctl is-active --quiet "$APP_NAME.service" &>/dev/null; then
@@ -77,6 +77,8 @@ do_install() {
         esac
     fi
 
+    # --- 文件安装阶段开始 ---
+    
     # 1. 获取下载链接
     read -p "请输入 fileinpic-linux-amd64.tar.gz 的下载链接: " DOWNLOAD_URL
     if [ -z "$DOWNLOAD_URL" ]; then
@@ -135,26 +137,45 @@ RestartSec=5s
 WantedBy=multi-user.target
 EOF
 
-    # 6. 启用并启动服务
-    echo "正在重载 systemd 并启动服务..."
+    # 6. 重载并启用服务
+    echo "正在重载 systemd 并启用服务..."
     systemctl daemon-reload
     systemctl enable "$APP_NAME.service"
-    systemctl start "$APP_NAME.service"
+
+    # --- 文件安装阶段结束 ---
+    _INSTALL_COMPLETE=true # 标记安装过程已完成，从现在起即使失败也不再回滚
+    echo "文件安装成功。"
+
+    # --- 服务启动阶段 ---
+    echo "正在尝试启动服务..."
+    # 尝试启动服务，但不使用 set -e，这样即使失败脚本也不会立即退出
+    if ! systemctl start "$APP_NAME.service"; then
+        echo "----------------------------------------" >&2
+        echo "错误：服务启动失败！" >&2
+        echo "安装文件已保留在 $INSTALL_DIR 中供您调试。" >&2
+        echo "请使用以下命令检查详细的错误日志：" >&2
+        echo "journalctl -u $APP_NAME.service -l --no-pager" >&2
+        echo "----------------------------------------" >&2
+        exit 1
+    fi
 
     # 延迟一小段时间，然后检查服务状态
     sleep 2
     if ! systemctl is-active --quiet "$APP_NAME.service"; then
-        echo "错误：服务启动失败。请检查日志 (journalctl -u $APP_NAME.service)" >&2
+        echo "----------------------------------------" >&2
+        echo "错误：服务启动后未能保持运行状态！" >&2
+        echo "安装文件已保留在 $INSTALL_DIR 中供您调试。" >&2
+        echo "请使用以下命令检查详细的错误日志：" >&2
+        echo "journalctl -u $APP_NAME.service -l --no-pager" >&2
+        echo "----------------------------------------" >&2
         exit 1
     fi
 
     echo "----------------------------------------"
-    echo "$APP_NAME 安装成功！"
+    echo "$APP_NAME 安装并启动成功！"
     echo "服务状态:"
     systemctl status "$APP_NAME.service" --no-pager
     echo "----------------------------------------"
-    
-    _SUCCESS=true # 标记为成功
 }
 
 # 卸载函数
@@ -185,8 +206,6 @@ do_uninstall() {
     if [ "$mode" != "silent" ]; then
         echo "$APP_NAME 卸载完成。"
     fi
-    
-    _SUCCESS=true # 标记为成功
 }
 
 # --- 脚本入口 ---
