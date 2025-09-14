@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadButton = document.getElementById('uploadButton');
     const authTokenInput = document.getElementById('authToken');
     const uploadStatus = document.getElementById('uploadStatus');
+    const fileNameSpan = document.querySelector('.file-name');
 
     // Delete Modal Elements
     const deleteModal = document.getElementById('deleteModal');
@@ -52,6 +53,13 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadModal.addEventListener('click', (e) => {
         if (e.target === uploadModal) hideModal(uploadModal);
     });
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            fileNameSpan.textContent = fileInput.files[0].name;
+        } else {
+            fileNameSpan.textContent = '未选择任何文件';
+        }
+    });
 
     // --- Delete Modal ---
     function showDeleteModal(fileId, filename) {
@@ -76,6 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/config');
             if (!response.ok) throw new Error('无法获取应用配置');
             const config = await response.json();
+            window.appConfig = config; // Store config globally
             if (config.authToken) {
                 authTokenInput.value = config.authToken;
             }
@@ -113,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${uploadDate}</td>
                     <td class="actions">
                         <button onclick="downloadFile(${file.id})">下载</button>
+                        <button class="share-btn" onclick="shareFile(${file.id}, '${file.filename}')">分享</button>
                         <button class="delete-btn" onclick="deleteFile(${file.id}, '${file.filename}')">删除</button>
                     </td>
                 `;
@@ -207,6 +217,77 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.deleteFile = function(fileId, filename) {
         showDeleteModal(fileId, filename);
+    }
+
+    // Share Modal Elements
+    const shareModal = document.getElementById('shareModal');
+    const closeShareModalBtn = document.getElementById('closeShareModalBtn');
+    const shareFilenameSpan = document.getElementById('shareFilename');
+    const sharePasswordInput = document.getElementById('sharePassword');
+    const shareLinkInput = document.getElementById('shareLink');
+    const copyShareLinkBtn = document.getElementById('copyShareLinkBtn');
+    const generateShareLinkBtn = document.getElementById('generateShareLinkBtn');
+    let fileToShare = { id: null, filename: null };
+
+    // --- Share Modal ---
+    async function showShareModal(fileId, filename) {
+        fileToShare = { id: fileId, filename: filename };
+        shareFilenameSpan.textContent = filename;
+        sharePasswordInput.value = '';
+        shareLinkInput.value = '';
+        showModal(shareModal);
+
+        try {
+            const response = await fetch(`/api/file/share-details?id=${fileId}`);
+            if (response.ok) {
+                const details = await response.json();
+                if (details.share_token) {
+                    const host = window.appConfig && window.appConfig.host ? window.appConfig.host : window.location.origin;
+                    const shareLink = `${host}/share.html?file=${details.share_token}`;
+                    shareLinkInput.value = shareLink;
+                    sharePasswordInput.value = details.share_password;
+                    showToast('已加载已有的分享链接');
+                }
+            }
+        } catch (error) {
+            console.error('获取分享详情时出错:', error);
+            // Do not show an error toast, as it might be confusing if there's no link yet.
+        }
+    }
+
+    closeShareModalBtn.addEventListener('click', () => hideModal(shareModal));
+    shareModal.addEventListener('click', (e) => {
+        if (e.target === shareModal) hideModal(shareModal);
+    });
+
+    generateShareLinkBtn.addEventListener('click', async () => {
+        const password = sharePasswordInput.value;
+        try {
+            const response = await fetch('/api/share', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ file_id: fileToShare.id, password: password })
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.message || '生成链接失败');
+
+            shareLinkInput.value = result.share_link;
+            showToast('分享链接已生成！');
+        } catch (error) {
+            showToast(`生成链接失败: ${error.message}`, 'error');
+        }
+    });
+
+    copyShareLinkBtn.addEventListener('click', () => {
+        if (shareLinkInput.value) {
+            navigator.clipboard.writeText(shareLinkInput.value)
+                .then(() => showToast('链接已复制到剪贴板！'))
+                .catch(() => showToast('复制失败', 'error'));
+        }
+    });
+
+    window.shareFile = function(fileId, filename) {
+        showShareModal(fileId, filename);
     }
 
     // --- Initial Load ---

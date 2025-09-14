@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -17,8 +16,11 @@ type FileInfo struct {
 }
 
 type AppConfig struct {
-	AuthToken string `json:"authToken"`
+	AuthToken string `json:"-"` // Keep this for internal use
+	Host      string `json:"host,omitempty"`
+	Password  string `json:"-"` // Do not expose password to the frontend
 }
+
 type UploadResponse struct {
 	Ok  bool   `json:"ok"`
 	Src string `json:"src"`
@@ -62,13 +64,19 @@ func filesHandler(db *sql.DB) http.HandlerFunc {
 	}
 }
 
-func configHandler() http.HandlerFunc {
+func configHandler(appConfig AppConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token := os.Getenv("AUTH_TOKEN")
-		config := AppConfig{AuthToken: token}
+		// Only expose necessary fields to the frontend
+		frontendConfig := struct {
+			AuthToken string `json:"authToken,omitempty"`
+			Host      string `json:"host,omitempty"`
+		}{
+			AuthToken: appConfig.AuthToken,
+			Host:      appConfig.Host,
+		}
 
 		w.Header().Set("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(config); err != nil {
+		if err := json.NewEncoder(w).Encode(frontendConfig); err != nil {
 			log.Printf("Failed to encode config to JSON: %v", err)
 			http.Error(w, "Failed to create config response", http.StatusInternalServerError)
 		}

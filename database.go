@@ -19,7 +19,9 @@ func initDB(filepath string) *sql.DB {
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
 		filename TEXT NOT NULL,
 		filesize INTEGER NOT NULL,
-		upload_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+		upload_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+		share_password TEXT,
+		share_token TEXT
 	);`
 	_, err = db.Exec(filesTable)
 	if err != nil {

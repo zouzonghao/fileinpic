@@ -42,7 +42,6 @@ body.modal-open {
 }
 
 .card:hover {
-    transform: translateY(-5px);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
 }
 
@@ -99,6 +98,7 @@ button {
 #showUploadModalBtn {
     background-color: var(--primary-color);
     color: white;
+    padding: 0.6rem 1.5rem; /* Adjusted padding to match search input height */
 }
 
 #showUploadModalBtn:hover {
@@ -227,6 +227,7 @@ label {
 }
 
 input[type="text"],
+input[type="password"],
 input[type="file"] {
     width: 100%;
     padding: 0.75rem;
@@ -237,12 +238,66 @@ input[type="file"] {
 }
 
 input[type="text"]:focus,
+input[type="password"]:focus,
 input[type="file"]:focus {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(136, 196, 210, 0.2);
 }
 
+
+/* Custom File Input Styles */
+.file-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.25rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.file-input-wrapper:hover {
+    border-color: var(--primary-color);
+}
+
+.file-input-wrapper input[type="file"] {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.btn-select-file {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    white-space: nowrap;
+}
+
+.btn-select-file:hover {
+    background-color: var(--primary-hover-color);
+}
+
+.file-name {
+    flex-grow: 1;
+    padding-left: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-color-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .help-text {
     font-size: 0.8rem;
     color: var(--text-color-light);
@@ -335,4 +390,15 @@ input[type="file"]:focus {
         opacity: 0;
         transform: translateX(100%);
     }
+}
+
+#loginBtn {
+    width: 100%;
+    background-color: var(--primary-color);
+    color: white;
+    margin-top: 1rem;
+}
+
+#loginBtn:hover {
+    background-color: var(--primary-hover-color);
 }

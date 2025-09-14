@@ -49,7 +49,11 @@
             </div>
             <div class="form-group">
                 <label for="fileInput">选择文件</label>
-                <input type="file" id="fileInput" required>
+                <div class="file-input-wrapper">
+                    <button type="button" class="btn-select-file">选择文件</button>
+                    <span class="file-name">未选择任何文件</span>
+                    <input type="file" id="fileInput" required>
+                </div>
             </div>
             <button id="uploadButton">确认上传</button>
             <p id="uploadStatus"></p>
@@ -70,6 +74,29 @@
             <div class="modal-actions">
                 <button id="cancelDeleteBtn" class="btn-secondary">取消</button>
                 <button id="confirmDeleteBtn" class="btn-danger">确认删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal-backdrop hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>分享文件</h2>
+                <button id="closeShareModalBtn" class="close-btn">&times;</button>
+            </div>
+            <p>正在为 <strong id="shareFilename"></strong> 创建分享链接...</p>
+            <div class="form-group">
+                <label for="sharePassword">下载密码 (可选)</label>
+                <input type="text" id="sharePassword" placeholder="留空则无需密码">
+            </div>
+            <div class="form-group">
+                <label for="shareLink">分享链接</label>
+                <input type="text" id="shareLink" readonly>
+                <button id="copyShareLinkBtn">复制</button>
+            </div>
+            <div class="modal-actions">
+                <button id="generateShareLinkBtn">生成链接</button>
             </div>
         </div>
     </div>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>下载文件</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h2>下载文件</h2>
+            </div>
+            <div id="fileInfo">
+                <p><strong>文件名:</strong> <span id="filename"></span></p>
+                <p><strong>大小:</strong> <span id="filesize"></span></p>
+            </div>
+            <div class="form-group">
+                <label for="downloadPassword">请输入下载密码</label>
+                <input type="password" id="downloadPassword" placeholder="如果需要密码，请输入">
+            </div>
+            <button id="downloadBtn">下载</button>
+        </div>
+    </div>
+    <script src="share.js"></script>
+</body>
+</html>
