@@ -3,6 +3,11 @@
 一个简单的文件分享服务。
 
 ## 使用方法
+### 安装
+
+```sh
+curl -o deploy.sh https://raw.githubusercontent.com/zouzonghao/fileinpic/refs/heads/main/deploy.sh && chmod +x deploy.sh && ./deploy.sh install
+```
 
 ### 构建
 
