@@ -127,10 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 const fileSize = (file.filesize / 1024 / 1024).toFixed(2) + ' MB';
 
                 row.innerHTML = `
-                    <td>${file.filename}</td>
-                    <td>${fileSize}</td>
-                    <td>${uploadDate}</td>
-                    <td class="actions">
+                    <td data-label="文件名">${file.filename}</td>
+                    <td data-label="大小">${fileSize}</td>
+                    <td data-label="上传日期">${uploadDate}</td>
+                    <td class="actions" data-label="操作">
                         <button class="download-btn" onclick="downloadFile(${file.id})">下载</button>
                         <button class="share-btn" onclick="shareFile(${file.id}, '${file.filename}')">分享</button>
                         <button class="delete-btn" onclick="deleteFile(${file.id}, '${file.filename}')">删除</button>

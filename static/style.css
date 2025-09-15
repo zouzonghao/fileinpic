@@ -486,3 +486,196 @@ input[type="file"]:focus {
 .actions button.share-btn:hover {
     background-color: #0069d9;
 }
+/* 响应式设计 - 移动设备优化 */
+@media (max-width: 768px) {
+    body {
+        padding: 1rem;
+    }
+    
+    .container {
+        padding: 0;
+    }
+    
+    .card {
+        padding: 1rem;
+    }
+    
+    .card-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    .toolbar {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+    }
+    
+    .search-container {
+        width: 80%;
+    }
+    
+    #searchInput {
+        width: 100%;
+    }
+    
+    #showUploadModalBtn {
+        width: 50%;
+        padding: 0.75rem;
+    }
+    
+    /* 表格在移动设备上的优化 */
+    table thead {
+        display: none;
+    }
+    
+    table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow);
+    }
+    
+    table tbody tr td {
+        display: block;
+        text-align: right;
+        padding: 0.25rem 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    table tbody tr td:last-child {
+        border-bottom: none;
+    }
+    
+    table tbody tr td:before {
+        content: attr(data-label) ": ";
+        float: left;
+        font-weight: bold;
+        color: var(--text-color-light);
+    }
+    
+    /* 为表格数据添加标签 */
+    table tbody tr td:nth-child(1):before { content: "文件名: "; }
+    table tbody tr td:nth-child(2):before { content: "大小: "; }
+    table tbody tr td:nth-child(3):before { content: "上传日期: "; }
+    table tbody tr td:nth-child(4):before { content: "操作: "; }
+    
+    .actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        padding-top: 0.5rem;
+    }
+    
+    .actions button {
+        flex: 1;
+        margin-right: 0;
+        padding: 0.5rem;
+        font-size: 0.8rem;
+        min-height: 44px; /* 符合触摸目标最小尺寸 */
+    }
+    
+    /* 模态框在移动设备上的优化 */
+    .modal-content {
+        padding: 1.5rem;
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
+    
+    .modal-header {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .modal-actions {
+        flex-direction: column;
+    }
+    
+    .modal-actions button {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-group.inline {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .input-with-button {
+        flex-direction: column;
+    }
+    
+    .input-with-button input {
+        border-radius: 8px;
+        margin-bottom: 0.5rem;
+    }
+    
+    .input-with-button button {
+        border-radius: 8px;
+        width: 100%;
+    }
+    
+    /* 触摸设备优化 */
+    button {
+        padding: 0.8rem 1rem;
+        min-height: 44px; /* 符合触摸目标最小尺寸 */
+    }
+    
+    input[type="text"],
+    input[type="password"],
+    input[type="file"] {
+        padding: 0.8rem;
+        min-height: 44px;
+    }
+    
+    .file-input-wrapper {
+        padding: 0.5rem;
+    }
+    
+    .btn-select-file {
+        padding: 0.6rem 1rem;
+        min-height: 44px;
+    }
+    
+    /* Toast通知在移动设备上的优化 */
+    .toast-container {
+        right: 1rem;
+        top: 1rem;
+    }
+    
+    .toast {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+}
+
+/* 平板设备优化 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    body {
+        padding: 1.5rem;
+    }
+    
+    .card {
+        padding: 1.5rem;
+    }
+    
+    .modal-content {
+        padding: 2rem;
+        width: 95%;
+    }
+}
+
+/* 大屏幕设备优化 */
+@media (min-width: 1025px) {
+    .container {
+        max-width: 1200px;
+    }
+}
