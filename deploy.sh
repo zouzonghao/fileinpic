@@ -67,8 +67,25 @@ do_install() {
         read -p "您想继续并覆盖现有安装吗？ (y/N): " choice
         case "$choice" in
           y|Y )
+            # 询问是否重置配置文件
+            read -p "是否重置配置文件 (config.yaml)？ (y/N): " reset_config
+            # 询问是否删除数据库
+            read -p "是否删除数据库文件 (fileinpic.db)？ (y/N): " delete_db
+            
+            # 确定是否保留文件
+            local keep_config="keep"
+            local keep_db="keep"
+            
+            if [ "$reset_config" = "y" ] || [ "$reset_config" = "Y" ]; then
+                keep_config=""
+            fi
+            
+            if [ "$delete_db" = "y" ] || [ "$delete_db" = "Y" ]; then
+                keep_db=""
+            fi
+            
             echo "正在继续安装，将首先卸载旧版本..."
-            do_uninstall "silent" # 静默卸载
+            do_uninstall "silent" "$keep_config" "$keep_db"
             ;;
           * )
             echo "安装已取消。"
@@ -181,6 +198,25 @@ EOF
 # 卸载函数
 do_uninstall() {
     local mode=$1 # "silent" or empty
+    local keep_config=$2 # "keep" to keep config file
+    local keep_db=$3 # "keep" to keep database file
+    
+    # 保存要保留的文件
+    local config_backup=""
+    local db_backup=""
+    
+    if [ "$keep_config" = "keep" ] && [ -f "$INSTALL_DIR/config.yaml" ]; then
+        echo "备份配置文件..."
+        cp "$INSTALL_DIR/config.yaml" "$TMP_DIR/config.yaml.backup"
+        config_backup="$TMP_DIR/config.yaml.backup"
+    fi
+    
+    if [ "$keep_db" = "keep" ] && [ -f "$INSTALL_DIR/fileinpic.db" ]; then
+        echo "备份数据库文件..."
+        cp "$INSTALL_DIR/fileinpic.db" "$TMP_DIR/fileinpic.db.backup"
+        db_backup="$TMP_DIR/fileinpic.db.backup"
+    fi
+    
     if [ "$mode" != "silent" ]; then
         echo "开始卸载 $APP_NAME..."
     fi
@@ -202,6 +238,22 @@ do_uninstall() {
         echo "正在删除安装目录..."
         rm -rf "$INSTALL_DIR"
     fi
+    
+    # 恢复保留的文件
+    if [ -n "$config_backup" ] || [ -n "$db_backup" ]; then
+        echo "恢复保留的文件..."
+        mkdir -p "$INSTALL_DIR"
+        
+        if [ -n "$config_backup" ]; then
+            echo "恢复配置文件..."
+            cp "$config_backup" "$INSTALL_DIR/config.yaml"
+        fi
+        
+        if [ -n "$db_backup" ]; then
+            echo "恢复数据库文件..."
+            cp "$db_backup" "$INSTALL_DIR/fileinpic.db"
+        fi
+    fi
 
     if [ "$mode" != "silent" ]; then
         echo "$APP_NAME 卸载完成。"
@@ -216,7 +268,7 @@ main() {
             do_install
             ;;
         uninstall)
-            do_uninstall
+            do_uninstall "" "" ""
             ;;
         *)
             echo "用法: $0 {install|uninstall}"
