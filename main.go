@@ -41,20 +41,30 @@ func main() {
 
 	var config AppConfig
 
+	// Load from environment variables first
+	config.Host = os.Getenv("HOST")
+	config.Password = os.Getenv("PASSWORD")
+	config.AuthToken = os.Getenv("AUTH_TOKEN")
+	config.ApiKey = os.Getenv("API_KEY")
+
+	// If a config file is provided, it overrides the environment variables
 	if *configPath != "" {
 		cfg, err := loadConfig(*configPath)
 		if err != nil {
 			log.Fatal(err)
 		}
-		config.Host = cfg.Host
-		config.Password = cfg.Password
-		config.AuthToken = cfg.AuthToken
-		config.ApiKey = cfg.ApiKey
-	} else {
-		config.Host = os.Getenv("HOST")
-		config.Password = os.Getenv("PASSWORD")
-		config.AuthToken = os.Getenv("AUTH_TOKEN")
-		config.ApiKey = os.Getenv("API_KEY")
+		if cfg.Host != "" {
+			config.Host = cfg.Host
+		}
+		if cfg.Password != "" {
+			config.Password = cfg.Password
+		}
+		if cfg.AuthToken != "" {
+			config.AuthToken = cfg.AuthToken
+		}
+		if cfg.ApiKey != "" {
+			config.ApiKey = cfg.ApiKey
+		}
 	}
 
 	if config.Password == "" {
@@ -72,7 +82,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// API routes
-	mux.Handle("POST /api/upload", authMiddleware(uploadHandler(db)))
+	mux.Handle("POST /api/upload", authMiddleware(uploadHandler(db, config)))
 	mux.Handle("GET /api/download/{id}", authMiddleware(downloadHandler(db)))
 	mux.Handle("DELETE /api/delete/{id}", authMiddleware(deleteHandler(db)))
 	mux.Handle("GET /api/files", authMiddleware(filesHandler(db)))
@@ -80,13 +90,13 @@ func main() {
 	mux.HandleFunc("GET /api/share/info", shareInfoHandler(db))
 	mux.HandleFunc("GET /api/share/download", shareDownloadHandler(db))
 	mux.Handle("GET /api/file/share-details", authMiddleware(fileShareDetailsHandler(db)))
-	mux.HandleFunc("GET /api/config", configHandler(config))
+	mux.Handle("GET /api/config", authMiddleware(configHandler(config)))
 	mux.HandleFunc("POST /api/login", loginHandler(config))
 
 	// API v1 routes
-	mux.Handle("POST /api/v1/files/upload", apiAuthMiddleware(apiUploadHandler(db), config))
+	mux.Handle("POST /api/v1/files/upload", apiAuthMiddleware(apiUploadHandler(db, config), config))
 	mux.Handle("GET /api/v1/files/download/{id}", apiAuthMiddleware(downloadHandler(db), config))
-	mux.Handle("DELETE /api/v1/files/delete/{id}", apiAuthMiddleware(deleteHandler(db), config))
+	mux.Handle("DELETE /api/v1/files/delete/{id}", apiAuthMiddleware(apiDeleteHandler(db), config))
 	mux.HandleFunc("GET /api/v1/files/public/download/{id}", downloadHandler(db))
 
 	// Static file server for the frontend

@@ -21,7 +21,8 @@ func initDB(filepath string) *sql.DB {
 		filesize INTEGER NOT NULL,
 		upload_timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
 		share_password TEXT,
-		share_token TEXT
+		share_token TEXT,
+		source TEXT
 	);`
 	_, err = db.Exec(filesTable)
 	if err != nil {

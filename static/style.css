@@ -203,6 +203,13 @@ tbody tr:last-child td {
 .modal-header h2 {
     margin: 0;
     font-size: 1.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Allow h2 to shrink and truncate its content */
+    flex: 1;
+    min-width: 0;
+    padding-right: 1rem; /* Add some space between text and close button */
 }
 
 .close-btn {

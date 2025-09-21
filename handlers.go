@@ -69,11 +69,9 @@ func configHandler(appConfig AppConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// Only expose necessary fields to the frontend
 		frontendConfig := struct {
-			AuthToken string `json:"authToken,omitempty"`
-			Host      string `json:"host,omitempty"`
+			Host string `json:"host,omitempty"`
 		}{
-			AuthToken: appConfig.AuthToken,
-			Host:      appConfig.Host,
+			Host: appConfig.Host,
 		}
 
 		w.Header().Set("Content-Type", "application/json")

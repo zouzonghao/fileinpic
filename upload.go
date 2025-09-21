@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"math"
+	"mime"
 	"net/http"
 )
 
@@ -15,13 +16,8 @@ const (
 	chunkSize     = 6 * 1024 * 1024 // 6 MB
 )
 
-func uploadHandler(db *sql.DB) http.HandlerFunc {
+func uploadHandler(db *sql.DB, config AppConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		authToken := r.Header.Get("Auth-Token")
-		if authToken == "" {
-			http.Error(w, "Auth-Token header is required", http.StatusBadRequest)
-			return
-		}
 
 		// It's important to still parse the form to get access to the file handle
 		if err := r.ParseMultipartForm(maxUploadSize); err != nil {
@@ -41,7 +37,7 @@ func uploadHandler(db *sql.DB) http.HandlerFunc {
 		log.Printf("Received file: %s, size: %d bytes", filename, filesize)
 
 		// 1. Save file metadata to DB
-		res, err := db.Exec("INSERT INTO files (filename, filesize) VALUES (?, ?)", filename, filesize)
+		res, err := db.Exec("INSERT INTO files (filename, filesize, source) VALUES (?, ?, ?)", filename, filesize, "web")
 		if err != nil {
 			http.Error(w, "Failed to save file metadata", http.StatusInternalServerError)
 			return
@@ -81,7 +77,7 @@ func uploadHandler(db *sql.DB) http.HandlerFunc {
 			combinedData := append(carrierData, chunkData...)
 
 			// 5. Upload to external API
-			imagePath, err := uploadCombinedData(combinedData, authToken)
+			imagePath, err := uploadCombinedData(combinedData, config.AuthToken)
 			if err != nil {
 				http.Error(w, "Failed to upload chunk", http.StatusInternalServerError)
 				log.Printf("Upload error: %v", err)
@@ -90,8 +86,8 @@ func uploadHandler(db *sql.DB) http.HandlerFunc {
 			log.Printf("Uploaded chunk %d, image path: %s", i+1, imagePath)
 
 			// 6. Save chunk info to DB
-			_, err = db.Exec("INSERT INTO chunks (file_id, chunk_order, image_path, auth_token) VALUES (?, ?, ?, ?)",
-				fileID, i, imagePath, authToken)
+			_, err = db.Exec("INSERT INTO chunks (file_id, chunk_order, image_path) VALUES (?, ?, ?)",
+				fileID, i, imagePath)
 			if err != nil {
 				http.Error(w, "Failed to save chunk metadata", http.StatusInternalServerError)
 				return
@@ -99,11 +95,14 @@ func uploadHandler(db *sql.DB) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(map[string]interface{}{"ok": true, "message": "File uploaded successfully."})
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"ok":  true,
+			"url": fmt.Sprintf("/api/v1/files/public/download/%d", fileID),
+		})
 	}
 }
 
-func apiUploadHandler(db *sql.DB) http.HandlerFunc {
+func apiUploadHandler(db *sql.DB, config AppConfig) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		contentDisposition := r.Header.Get("Content-Disposition")
 		if contentDisposition == "" {
@@ -111,14 +110,19 @@ func apiUploadHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		filename := ""
-		if _, err := fmt.Sscanf(contentDisposition, "attachment; filename=\"%s\"", &filename); err != nil {
+		_, params, err := mime.ParseMediaType(contentDisposition)
+		if err != nil {
 			http.Error(w, "Invalid Content-Disposition header", http.StatusBadRequest)
+			return
+		}
+		filename, ok := params["filename"]
+		if !ok {
+			http.Error(w, "Filename not found in Content-Disposition header", http.StatusBadRequest)
 			return
 		}
 
 		// 1. Save file metadata to DB
-		res, err := db.Exec("INSERT INTO files (filename, filesize) VALUES (?, ?)", filename, r.ContentLength)
+		res, err := db.Exec("INSERT INTO files (filename, filesize, source) VALUES (?, ?, ?)", filename, r.ContentLength, "api")
 		if err != nil {
 			http.Error(w, "Failed to save file metadata", http.StatusInternalServerError)
 			return
@@ -158,7 +162,8 @@ func apiUploadHandler(db *sql.DB) http.HandlerFunc {
 			combinedData := append(carrierData, chunkData...)
 
 			// 5. Upload to external API
-			imagePath, err := uploadCombinedData(combinedData, "")
+			apiKey := r.Header.Get("X-API-KEY")
+			imagePath, err := uploadCombinedData(combinedData, apiKey)
 			if err != nil {
 				http.Error(w, "Failed to upload chunk", http.StatusInternalServerError)
 				log.Printf("Upload error: %v", err)

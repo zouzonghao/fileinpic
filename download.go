@@ -35,8 +35,8 @@ func downloadHandler(db *sql.DB) http.HandlerFunc {
 		}
 		log.Printf("Attempting to download file with ID: %d", fileID)
 
-		var filename string
-		err = db.QueryRow("SELECT filename FROM files WHERE id = ?", fileID).Scan(&filename)
+		var filename, source string
+		err = db.QueryRow("SELECT filename, source FROM files WHERE id = ?", fileID).Scan(&filename, &source)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.Error(w, "File not found", http.StatusNotFound)
@@ -44,6 +44,12 @@ func downloadHandler(db *sql.DB) http.HandlerFunc {
 				log.Printf("Error: File not found in DB for ID %d: %v", fileID, err)
 				http.Error(w, "Failed to query file", http.StatusInternalServerError)
 			}
+			return
+		}
+
+		// Check if the request is for a public download and if the source is not 'api'
+		if r.URL.Path == fmt.Sprintf("/api/v1/files/public/download/%d", fileID) && source != "api" {
+			http.Error(w, "This file is not available for public download", http.StatusForbidden)
 			return
 		}
 		log.Printf("Found filename: %s", filename)

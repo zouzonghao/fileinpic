@@ -11,14 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeUploadModalBtn = document.getElementById('closeUploadModalBtn');
     const fileInput = document.getElementById('fileInput');
     const uploadButton = document.getElementById('uploadButton');
-    const authTokenInput = document.getElementById('authToken');
     const uploadStatus = document.getElementById('uploadStatus');
     const fileNameSpan = document.querySelector('.file-name');
 
     // Delete Modal Elements
     const deleteModal = document.getElementById('deleteModal');
     const deleteFilenameSpan = document.getElementById('deleteFilename');
-    const deleteAuthTokenInput = document.getElementById('deleteAuthToken');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
 
@@ -58,7 +56,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Upload Modal ---
-    showUploadModalBtn.addEventListener('click', () => showModal(uploadModal));
+    showUploadModalBtn.addEventListener('click', async () => {
+    	showLoading(); // Show loading spinner for better UX
+    	try {
+    		await fetchConfig(); // Force fetch config before showing the modal
+    		showModal(uploadModal);
+    	} catch (error) {
+    		showToast('无法加载上传模块，请刷新页面重试。', 'error');
+    	} finally {
+    		hideLoading();
+    	}
+    });
     closeUploadModalBtn.addEventListener('click', () => hideModal(uploadModal));
     uploadModal.addEventListener('click', (e) => {
         if (e.target === uploadModal) hideModal(uploadModal);
@@ -75,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function showDeleteModal(fileId, filename) {
         fileToDelete = { id: fileId, filename: filename };
         deleteFilenameSpan.textContent = filename;
-        deleteAuthTokenInput.value = authTokenInput.value; // Pre-fill token
         showModal(deleteModal);
     }
 
@@ -95,9 +102,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error('无法获取应用配置');
             const config = await response.json();
             window.appConfig = config; // Store config globally
-            if (config.authToken) {
-                authTokenInput.value = config.authToken;
-            }
         } catch (error) {
             console.error('获取配置时出错:', error);
         }
@@ -145,13 +149,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Event Handlers ---
     async function uploadFile() {
-        const file = fileInput.files[0];
-        const authToken = authTokenInput.value.trim();
+  const file = fileInput.files[0];
 
-        if (!file || !authToken) {
-            showToast('请选择一个文件并提供授权令牌。', 'error');
-            return;
-        }
+  if (!file) {
+   showToast('请选择一个文件。', 'error');
+   return;
+  }
 
         showLoading();
         uploadButton.disabled = true;
@@ -163,7 +166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/api/upload', {
                 method: 'POST',
-                headers: { 'Auth-Token': authToken },
                 body: formData
             });
 
@@ -194,16 +196,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     async function handleConfirmDelete() {
-        const authToken = deleteAuthTokenInput.value.trim();
-        if (!authToken) {
-            showToast("请输入授权令牌。", 'error');
-            return;
-        }
 
         try {
             const response = await fetch(`/api/delete/${fileToDelete.id}`, {
                 method: 'DELETE',
-                headers: { 'Auth-Token': authToken }
+                headers: { 'Content-Type': 'application/json' }
             });
 
             const result = await response.json();
@@ -244,6 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function showShareModal(fileId, filename) {
         fileToShare = { id: fileId, filename: filename, share_token: null };
         shareFilenameSpan.textContent = filename;
+        shareFilenameSpan.title = filename;
         sharePasswordInput.value = '';
         shareResultDiv.classList.add('hidden');
         shareLinkInput.value = '';

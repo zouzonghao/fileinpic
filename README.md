@@ -51,22 +51,22 @@ export API_KEY="PASSWORD"
 ```
 
 如果同时提供了配置文件和环境变量，则配置文件中的值将覆盖环境变量。
-## API Usage
+## API 使用
 
-### Authentication
+### 认证
 
-To use the API, you need to provide an API key via the `X-API-KEY` header. You can set the API key in the `config.yaml` file or via the `API_KEY` environment variable.
+要使用 API，您需要通过 `X-API-KEY` 请求头提供 API 密钥。您可以在 `config.yaml` 文件中或通过 `API_KEY` 环境变量设置 API 密钥。
 
-### Upload a file
+### 上传文件
 
-To upload a file, send a `POST` request to the `/api/v1/files/upload` endpoint with the file's binary data in the request body.
+要上传文件，请向 `/api/v1/files/upload` 端点发送 `POST` 请求，请求体中包含文件的二进制数据。
 
-**Required headers:**
+**必需的请求头:**
 
-*   `X-API-KEY`: Your API key.
+*   `X-API-KEY`: 您的 API 密钥。
 *   `Content-Disposition`: `attachment; filename="your_file_name"`
 
-**Example using curl:**
+**使用 curl 的示例:**
 
 ```bash
 curl -X POST \
@@ -76,7 +76,7 @@ curl -X POST \
   http://localhost:37374/api/v1/files/upload
 ```
 
-**Success response:**
+**成功响应:**
 
 ```json
 {
@@ -85,11 +85,11 @@ curl -X POST \
 }
 ```
 
-### Download a file
+### 下载文件
 
-To download a file, you can use the public URL returned in the upload response. No authentication is required to download the file.
+要下载文件，您可以使用上传响应中返回的公共 URL。下载文件不需要认证。
 
-**Example using curl:**
+**使用 curl 的示例:**
 
 ```bash
 curl -X GET \
@@ -97,17 +97,18 @@ curl -X GET \
   http://localhost:37374/api/v1/files/public/download/1
 ```
 
-### Delete a file
+### 删除文件
 
-To delete a file, send a `DELETE` request to the `/api/v1/files/delete/{id}` endpoint, where `{id}` is the ID of the file you want to delete.
+要删除文件，请向 `/api/v1/files/delete/{id}` 端点发送 `DELETE` 请求，其中 `{id}` 是您要删除的文件的 ID。
 
-**Required headers:**
+**必需的请求头:**
 
-*   `X-API-KEY`: Your API key.
+*   `X-API-KEY`: 您的 API 密钥。
 
-**Example using curl:**
+**使用 curl 的示例:**
 
 ```bash
 curl -X DELETE \
   -H "X-API-KEY: PASSWORD" \
   http://localhost:37374/api/v1/files/delete/1
+```

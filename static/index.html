@@ -43,11 +43,6 @@
                 <button id="closeUploadModalBtn" class="close-btn">&times;</button>
             </div>
             <div class="form-group">
-                <label for="authToken">授权令牌 (Auth-Token)</label>
-                <input type="text" id="authToken" placeholder="将自动加载令牌" required>
-                <p class="help-text">此令牌用于管理您上传的文件。</p>
-            </div>
-            <div class="form-group">
                 <label for="fileInput">选择文件</label>
                 <div class="file-input-wrapper">
                     <button type="button" class="btn-select-file">选择文件</button>
@@ -66,10 +61,8 @@
             <div class="modal-header">
                 <h2>确认删除</h2>
             </div>
-            <p>您确定要删除文件 <strong id="deleteFilename"></strong> 吗？此操作无法撤销。</p>
-            <div class="form-group">
-                <label for="deleteAuthToken">授权令牌 (Auth-Token)</label>
-                <input type="text" id="deleteAuthToken" placeholder="请输入授权令牌" required>
+            <div style="margin-bottom: 2rem;">
+                <p>您确定要删除文件 <strong id="deleteFilename"></strong> 吗？此操作无法撤销。</p>
             </div>
             <div class="modal-actions">
                 <button id="cancelDeleteBtn" class="btn-secondary">取消</button>
