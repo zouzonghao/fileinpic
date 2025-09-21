@@ -117,3 +117,20 @@ func authMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func apiAuthMiddleware(next http.Handler, config AppConfig) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		apiKey := r.Header.Get("X-API-KEY")
+		if apiKey == "" {
+			http.Error(w, "API key is required", http.StatusUnauthorized)
+			return
+		}
+
+		if apiKey != config.ApiKey {
+			http.Error(w, "Invalid API key", http.StatusUnauthorized)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}

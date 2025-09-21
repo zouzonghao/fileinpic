@@ -19,6 +19,7 @@ type AppConfig struct {
 	AuthToken string `json:"-"` // Keep this for internal use
 	Host      string `json:"host,omitempty"`
 	Password  string `json:"-"` // Do not expose password to the frontend
+	ApiKey    string `json:"-"`
 }
 
 type UploadResponse struct {

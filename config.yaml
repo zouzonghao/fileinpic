@@ -4,3 +4,5 @@ host: ""
 password: "admin"
 # The auth token to use for API requests
 auth_token: ""
+# The api key to use for API requests
+api_key: "PASSWORD"

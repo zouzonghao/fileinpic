@@ -14,6 +14,7 @@ type Config struct {
 	Host      string `yaml:"host"`
 	Password  string `yaml:"password"`
 	AuthToken string `yaml:"auth_token"`
+	ApiKey    string `yaml:"api_key"`
 }
 
 func loadConfig(path string) (*Config, error) {
@@ -48,14 +49,20 @@ func main() {
 		config.Host = cfg.Host
 		config.Password = cfg.Password
 		config.AuthToken = cfg.AuthToken
+		config.ApiKey = cfg.ApiKey
 	} else {
 		config.Host = os.Getenv("HOST")
 		config.Password = os.Getenv("PASSWORD")
 		config.AuthToken = os.Getenv("AUTH_TOKEN")
+		config.ApiKey = os.Getenv("API_KEY")
 	}
 
 	if config.Password == "" {
 		config.Password = "admin"
+	}
+
+	if config.ApiKey == "" {
+		config.ApiKey = config.Password
 	}
 
 	db := initDB("./fileinpic.db")
@@ -75,6 +82,12 @@ func main() {
 	mux.Handle("GET /api/file/share-details", authMiddleware(fileShareDetailsHandler(db)))
 	mux.HandleFunc("GET /api/config", configHandler(config))
 	mux.HandleFunc("POST /api/login", loginHandler(config))
+
+	// API v1 routes
+	mux.Handle("POST /api/v1/files/upload", apiAuthMiddleware(apiUploadHandler(db), config))
+	mux.Handle("GET /api/v1/files/download/{id}", apiAuthMiddleware(downloadHandler(db), config))
+	mux.Handle("DELETE /api/v1/files/delete/{id}", apiAuthMiddleware(deleteHandler(db), config))
+	mux.HandleFunc("GET /api/v1/files/public/download/{id}", downloadHandler(db))
 
 	// Static file server for the frontend
 	fs := http.FileServer(http.Dir("./static"))

@@ -122,18 +122,22 @@ do_install() {
     chmod +x "$INSTALL_DIR/$APP_NAME"
 
     # 4. 获取用户配置并生成 config.yaml
-    echo "请输入配置信息以生成 config.yaml:"
-    read -p "Host (例如: 0.0.0.0:8080): " HOST
-    read -sp "Password: " PASSWORD
-    echo
-    read -p "Auth Token: " AUTH_TOKEN
+    if [ ! -f "$INSTALL_DIR/config.yaml" ]; then
+        echo "请输入配置信息以生成 config.yaml:"
+        read -p "Host (例如: 0.0.0.0:8080): " HOST
+        read -sp "Password: " PASSWORD
+        echo
+        read -p "Auth Token: " AUTH_TOKEN
 
-    echo "正在生成 config.yaml..."
-    cat > "$INSTALL_DIR/config.yaml" << EOF
+        echo "正在生成 config.yaml..."
+        cat > "$INSTALL_DIR/config.yaml" << EOF
 host: "$HOST"
 password: "$PASSWORD"
 auth_token: "$AUTH_TOKEN"
 EOF
+    else
+        echo "检测到现有配置文件，将跳过重新配置。"
+    fi
 
     # 5. 创建 systemd 服务
     echo "正在创建 systemd 服务..."

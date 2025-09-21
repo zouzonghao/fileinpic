@@ -30,6 +30,8 @@ host: ""
 password: "admin"
 # 用于API请求的认证令牌
 auth_token: ""
+# 用于API请求的API密钥
+api_key: "PASSWORD"
 ```
 
 然后运行应用程序：
@@ -44,7 +46,72 @@ auth_token: ""
 export PASSWORD="your_password"
 export HOST="http://localhost:37374"
 export AUTH_TOKEN="your_secret_token"
+export API_KEY="PASSWORD"
 ./fileinpic
 ```
 
 如果同时提供了配置文件和环境变量，则配置文件中的值将覆盖环境变量。
+## API Usage
+
+### Authentication
+
+To use the API, you need to provide an API key via the `X-API-KEY` header. You can set the API key in the `config.yaml` file or via the `API_KEY` environment variable.
+
+### Upload a file
+
+To upload a file, send a `POST` request to the `/api/v1/files/upload` endpoint with the file's binary data in the request body.
+
+**Required headers:**
+
+*   `X-API-KEY`: Your API key.
+*   `Auth-Token`: Your auth token.
+*   `Content-Disposition`: `attachment; filename="your_file_name"`
+
+**Example using curl:**
+
+```bash
+curl -X POST \
+  -H "X-API-KEY: PASSWORD" \
+  -H "Auth-Token: your_auth_token" \
+  -H "Content-Disposition: attachment; filename=\"test.txt\"" \
+  --data-binary "@path/to/your/file" \
+  http://localhost:37374/api/v1/files/upload
+```
+
+**Success response:**
+
+```json
+{
+  "ok": true,
+  "url": "/api/v1/files/public/download/1"
+}
+```
+
+### Download a file
+
+To download a file, you can use the public URL returned in the upload response. No authentication is required to download the file.
+
+**Example using curl:**
+
+```bash
+curl -X GET \
+  -o "downloaded_file" \
+  http://localhost:37374/api/v1/files/public/download/1
+```
+
+### Delete a file
+
+To delete a file, send a `DELETE` request to the `/api/v1/files/delete/{id}` endpoint, where `{id}` is the ID of the file you want to delete.
+
+**Required headers:**
+
+*   `X-API-KEY`: Your API key.
+*   `Auth-Token`: The auth token that was used to upload the file.
+
+**Example using curl:**
+
+```bash
+curl -X DELETE \
+  -H "X-API-KEY: PASSWORD" \
+  -H "Auth-Token: your_auth_token" \
+  http://localhost:37374/api/v1/files/delete/1
