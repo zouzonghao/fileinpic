@@ -23,14 +23,7 @@ func deleteHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		userAuthToken := r.Header.Get("Auth-Token")
-		if userAuthToken == "" {
-			log.Printf("Auth-Token header is missing for file ID %d", fileID)
-			http.Error(w, "Auth-Token header is required", http.StatusBadRequest)
-			return
-		}
-
-		rows, err := db.Query("SELECT image_path, auth_token FROM chunks WHERE file_id = ?", fileID)
+		rows, err := db.Query("SELECT image_path FROM chunks WHERE file_id = ?", fileID)
 		if err != nil {
 			log.Printf("Failed to query chunks for file ID %d: %v", fileID, err)
 			http.Error(w, "Failed to query chunks", http.StatusInternalServerError)
@@ -41,7 +34,7 @@ func deleteHandler(db *sql.DB) http.HandlerFunc {
 		var chunks []ChunkInfo
 		for rows.Next() {
 			var chunk ChunkInfo
-			if err := rows.Scan(&chunk.ImagePath, &chunk.AuthToken); err != nil {
+			if err := rows.Scan(&chunk.ImagePath); err != nil {
 				log.Printf("Failed to scan chunk row for file ID %d: %v", fileID, err)
 				http.Error(w, "Failed to scan chunk row", http.StatusInternalServerError)
 				return
@@ -55,16 +48,9 @@ func deleteHandler(db *sql.DB) http.HandlerFunc {
 			return
 		}
 
-		// Validate auth token against the first chunk's token
-		if chunks[0].AuthToken != userAuthToken {
-			log.Printf("Unauthorized attempt to delete file ID %d with token %s", fileID, userAuthToken)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
 		// Delete from external API
 		for _, chunk := range chunks {
-			if err := deleteImage(chunk.ImagePath, chunk.AuthToken); err != nil {
+			if err := deleteImage(chunk.ImagePath, ""); err != nil {
 				log.Printf("Failed to delete image %s: %v", chunk.ImagePath, err)
 			}
 		}

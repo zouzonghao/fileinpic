@@ -105,12 +105,6 @@ func uploadHandler(db *sql.DB) http.HandlerFunc {
 
 func apiUploadHandler(db *sql.DB) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		authToken := r.Header.Get("Auth-Token")
-		if authToken == "" {
-			http.Error(w, "Auth-Token header is required", http.StatusBadRequest)
-			return
-		}
-
 		contentDisposition := r.Header.Get("Content-Disposition")
 		if contentDisposition == "" {
 			http.Error(w, "Content-Disposition header is required", http.StatusBadRequest)
@@ -164,7 +158,7 @@ func apiUploadHandler(db *sql.DB) http.HandlerFunc {
 			combinedData := append(carrierData, chunkData...)
 
 			// 5. Upload to external API
-			imagePath, err := uploadCombinedData(combinedData, authToken)
+			imagePath, err := uploadCombinedData(combinedData, "")
 			if err != nil {
 				http.Error(w, "Failed to upload chunk", http.StatusInternalServerError)
 				log.Printf("Upload error: %v", err)
@@ -173,8 +167,8 @@ func apiUploadHandler(db *sql.DB) http.HandlerFunc {
 			log.Printf("Uploaded chunk %d, image path: %s", i+1, imagePath)
 
 			// 6. Save chunk info to DB
-			_, err = db.Exec("INSERT INTO chunks (file_id, chunk_order, image_path, auth_token) VALUES (?, ?, ?, ?)",
-				fileID, i, imagePath, authToken)
+			_, err = db.Exec("INSERT INTO chunks (file_id, chunk_order, image_path) VALUES (?, ?, ?)",
+				fileID, i, imagePath)
 			if err != nil {
 				http.Error(w, "Failed to save chunk metadata", http.StatusInternalServerError)
 				return

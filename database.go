@@ -35,7 +35,6 @@ func initDB(filepath string) *sql.DB {
 		file_id INTEGER NOT NULL,
 		chunk_order INTEGER NOT NULL,
 		image_path TEXT NOT NULL,
-		auth_token TEXT NOT NULL,
 		FOREIGN KEY(file_id) REFERENCES files(id)
 	);`
 	_, err = db.Exec(chunksTable)

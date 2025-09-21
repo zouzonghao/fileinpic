@@ -64,7 +64,6 @@ To upload a file, send a `POST` request to the `/api/v1/files/upload` endpoint w
 **Required headers:**
 
 *   `X-API-KEY`: Your API key.
-*   `Auth-Token`: Your auth token.
 *   `Content-Disposition`: `attachment; filename="your_file_name"`
 
 **Example using curl:**
@@ -72,7 +71,6 @@ To upload a file, send a `POST` request to the `/api/v1/files/upload` endpoint w
 ```bash
 curl -X POST \
   -H "X-API-KEY: PASSWORD" \
-  -H "Auth-Token: your_auth_token" \
   -H "Content-Disposition: attachment; filename=\"test.txt\"" \
   --data-binary "@path/to/your/file" \
   http://localhost:37374/api/v1/files/upload
@@ -106,12 +104,10 @@ To delete a file, send a `DELETE` request to the `/api/v1/files/delete/{id}` end
 **Required headers:**
 
 *   `X-API-KEY`: Your API key.
-*   `Auth-Token`: The auth token that was used to upload the file.
 
 **Example using curl:**
 
 ```bash
 curl -X DELETE \
   -H "X-API-KEY: PASSWORD" \
-  -H "Auth-Token: your_auth_token" \
   http://localhost:37374/api/v1/files/delete/1
