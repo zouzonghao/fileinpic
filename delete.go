@@ -133,12 +133,6 @@ func apiDeleteHandler(db *sql.DB) http.HandlerFunc {
 			chunks = append(chunks, chunk)
 		}
 
-		if len(chunks) == 0 {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(map[string]interface{}{"ok": true, "message": "File not found or already deleted."})
-			return
-		}
-
 		// Delete from external API
 		apiKey := r.Header.Get("X-API-KEY")
 		for _, chunk := range chunks {

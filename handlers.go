@@ -35,10 +35,10 @@ func filesHandler(db *sql.DB) http.HandlerFunc {
 		var err error
 
 		if searchQuery != "" {
-			query := "SELECT id, filename, filesize, upload_timestamp FROM files WHERE filename LIKE ? ORDER BY upload_timestamp DESC"
+			query := "SELECT id, filename, filesize, upload_timestamp FROM files WHERE filename LIKE ? AND filename != '' ORDER BY upload_timestamp DESC"
 			rows, err = db.Query(query, "%"+searchQuery+"%")
 		} else {
-			query := "SELECT id, filename, filesize, upload_timestamp FROM files ORDER BY upload_timestamp DESC"
+			query := "SELECT id, filename, filesize, upload_timestamp FROM files WHERE filename != '' ORDER BY upload_timestamp DESC"
 			rows, err = db.Query(query)
 		}
 
